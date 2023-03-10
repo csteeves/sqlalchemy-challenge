@@ -103,13 +103,13 @@ def tobs():
 def starting(start):
     # Create our session (link) from Python to the DB
     session= Session(engine)
-    most_recent_date = session.query(func.max(Measurement.date)).scalar()
-    sel = [func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)]
-    search_query = session.query(*sel).filter(Measurement.date.between(start,most_recent_date))
+    sel = [Measurement.date,func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)]
+    search_query = session.query(*sel).filter(Measurement.date >= start).group_by(Measurement.date).all()
 
     start_list = []
-    for min,max,avg in search_query:
+    for date,min,max,avg in search_query:
         start_dict={}
+        start_dict['date']=date
         start_dict['min']=min
         start_dict['max']=max
         start_dict['avg']=avg
@@ -120,11 +120,12 @@ def starting(start):
 def ending(start,end):
     # Create our session (link) from Python to the DB
     session= Session(engine)
-    sel= [func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)]
-    search_query= session.query(*sel).filter(Measurement.date.between(start,end)).all()
+    sel= [Measurement.date,func.min(Measurement.tobs),func.max(Measurement.tobs),func.avg(Measurement.tobs)]
+    search_query= session.query(*sel).filter(Measurement.date.between(start,end)).group_by(Measurement.date).all()
     start_stop_list= []
-    for min,max,avg in search_query:
+    for date,min,max,avg in search_query:
         start_stop_dict={}
+        start_stop_dict['date']=date
         start_stop_dict['Min']=min
         start_stop_dict['Max']=max
         start_stop_dict['Avg']=avg
